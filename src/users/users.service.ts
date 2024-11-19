@@ -61,6 +61,7 @@ export class UserService {
     res: Response,
   ): Promise<void> {
     info.password = await this.hashPassword(info.password);
+   info.email= info.email.toLowerCase()
     const user = await this.prisma.user.create({
       data: info,
     });
@@ -73,7 +74,7 @@ export class UserService {
     res: Response,
   ): Promise<void> {
     const user = await this.prisma.user.findUnique({
-      where: { email: body.email },
+      where: { email: body.email.toLocaleLowerCase() },
     });
 
     if (!user || !(await this.checkPassword(body.password, user.password))) {
