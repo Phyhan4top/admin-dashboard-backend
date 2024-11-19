@@ -31,10 +31,11 @@ export class UserService {
       ),
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Secure in production
+      sameSite: 'none',
     };
 
     res
-      .cookie('jwt', token, cookieOptions)
+      .cookie('jwt', token, cookieOptions as any)
       .status(statusCode)
       .json({
         status: 'success',
@@ -110,7 +111,7 @@ export class UserService {
         totalPages,
         totalRecords,
       },
-      status:"success",
+      status: 'success',
       data: users,
     };
   }
