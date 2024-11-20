@@ -39,7 +39,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
 
       next();
     } catch (err) {
-      return next(err);
+      return next();
     }
   }
 }
