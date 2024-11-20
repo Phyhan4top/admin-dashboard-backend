@@ -1,16 +1,16 @@
 import {
   Controller,
-  Patch,
-  Param,
-  Body,
-  UseGuards,
   Post,
-  Get,
-  Delete,
-  Req,
   Res,
-  UnauthorizedException,
+  Body,
+  Get,
   Query,
+  Param,
+  Patch,
+  UseGuards,
+  Delete,
+  UnauthorizedException,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { Roles } from 'src/common/decorators/roles.decorator'; // Import custom roles decorator
@@ -19,65 +19,77 @@ import { Role } from '@prisma/client'; // Assuming Role is defined in your schem
 import { CreateUserDto } from 'src/Dto/create.user.dto'; // Create user DTO for validation
 import { Response, Request } from 'express';
 import { ExtendedRequest } from 'src/common/interfaces/extended-request.interface';
-import * as bcrypt from "bcrypt";
-
-
 @Controller('api/users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('/signup')
-  createUser(@Res() res: Response, @Body() body: CreateUserDto) {
-    return this.userService.createUser(body, res); // Directly return the result from the service
+  async createUser(@Res() res: Response, @Body() body: CreateUserDto) {
+    try {
+      await this.userService.createUser(body, res);
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
   }
 
-  @Post('login')
+  @Post('/login')
   async login(
     @Body() body: { email: string; password: string },
-    @Req() req: Request,
     @Res() res: Response,
-  ): Promise<any> {
-    return this.userService.login(body, res); // Directly return the result from the service
+  ) {
+    try {
+      await this.userService.login(body, res);
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
   }
 
-
   @Get()
-  getAllUser(
-    @Req() req: Request,
+  async getAllUser(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('sortBy') sortBy = 'createdAt',
+    @Query('order') order: 'asc' | 'desc' = 'desc',
     @Res() res: Response,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('sortBy') sortBy: string,
-    @Query('order') order: 'asc' | 'desc',
   ) {
-    this.userService
-      .getAllUser(
-        Number(page) || 1,
-        Number(limit) || 10,
-        sortBy || 'createdAt',
-        order || 'desc',
-      )
-      .then((users) => {
-        res.status(200).json({
-          status: 'success',
-          total: users.length,
-          data: users,
-        });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          status: 'error',
-          message: err.message,
-        });
+    try {
+      const users = await this.userService.getAllUser(
+        Number(page),
+        Number(limit),
+        sortBy,
+        order,
+      );
+      return res.status(200).json({
+        status: 'success',
+        meta: users.meta,
+        data: users.data,
       });
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
   }
 
   @Get(':id')
-  getUser(@Param('id') id: string) {
-    return this.userService.getUser(id); // Get user by id
+  async getUser(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const user = await this.userService.getUser(id);
+      return res.status(200).json({ status: 'success', data: user });
+    } catch (error) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found',
+      });
+    }
   }
-
-  // Only admins can update user details
 
   @Patch(':id')
   @UseGuards(RolesGuard) // Use roles guard to protect the route
@@ -107,40 +119,81 @@ export class UserController {
       }); // Proceed to update user
   }
 
-  @Delete()
-  deleteAllUsers(
-    @Req() req: Request, // Use the custom request type here
+  @Patch('update-many')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async updateMany(
+    @Body() body: { ids: string[]; data: any },
+    @Req() req: ExtendedRequest, // Use the custom request type here
     @Res() res: Response,
   ) {
-    this.userService
-      .deleteAllUser()
-      .then(() => {
-        res.status(204).json({ status: 'success' });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          status: 'error',
-          message: err.message,
-        });
-      }); // Delete all users
+    try {
+      const user = req.user;
+
+      if (user.role !== Role.ADMIN) {
+        throw new UnauthorizedException('Only admins can update users');
+      }
+
+      if (!body.ids || !body.ids.length) {
+        throw new Error('IDs are required');
+      }
+      const resultCount = await this.userService.updateManyUsers(
+        body.ids,
+        body.data,
+      );
+      return res
+        .status(200)
+        .json({ status: 'success', updatedCount: resultCount });
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: error.message });
+    }
+  }
+
+  @Delete('delete-many')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async deleteMany(
+    @Body() body: { ids: string[] },
+    @Res() res: Response,
+    @Req() req: ExtendedRequest,
+  ) {
+    try {
+      const user = req.user;
+
+      if (user.role !== Role.ADMIN) {
+        throw new UnauthorizedException('Only admins can update users');
+      }
+
+      if (!body.ids || !body.ids.length) {
+        throw new Error('IDs are required');
+      }
+      const result = await this.userService.deleteManyUsers(body.ids);
+      return res
+        .status(200)
+        .json({ status: 'success', deleteCount: result.deleteCount });
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: error.message });
+    }
   }
 
   @Delete(':id')
-  deleteUser(
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  async deleteUser(
     @Param('id') id: string,
-    @Req() req: Request, // Use the custom request type here
     @Res() res: Response,
+    @Req() req: ExtendedRequest,
   ) {
-    this.userService
-      .deleteUser(id)
-      .then(() => {
-        res.status(204).json({ status: 'success' });
-      })
-      .catch((err) => {
-        res.status(500).json({
-          status: 'error',
-          message: err.message,
-        });
-      }); // Delete all users; // Delete user by id
+    try {
+      const user = req.user;
+
+      if (user.role !== Role.ADMIN) {
+        throw new UnauthorizedException('Only admins can update users');
+      }
+      await this.userService.deleteUser(id);
+      return res.status(204).json({ status: 'success' });
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: error.message });
+    }
   }
 }

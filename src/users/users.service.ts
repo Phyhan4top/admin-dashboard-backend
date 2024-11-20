@@ -61,26 +61,36 @@ export class UserService {
     res: Response,
   ): Promise<void> {
     info.password = await this.hashPassword(info.password);
-   info.email= info.email.toLowerCase()
-    const user = await this.prisma.user.create({
-      data: info,
-    });
-
-    this.sendToken(user, 201, res);
+    info.email = info.email.toLowerCase();
+   this.prisma.user
+      .create({
+        data: info,
+      })
+      .then((user) => {
+        this.sendToken(user, 201, res);
+      })
+      .catch((err) => {
+        res.status(404).json({
+          status: 'error',
+          message: err.message,
+        });
+      });
   }
 
   async login(
     body: { email: string; password: string },
-    res: Response,
+    res: any,
   ): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { email: body.email.toLocaleLowerCase() },
     });
 
-    if (!user || !(await this.checkPassword(body.password, user.password))) {
-      throw new Error('Incorrect email or password');
-    }
-
+   if (!user || !(await this.checkPassword(body.password, user.password))) {
+    return res.status(404).json({
+    status: 'error',
+    message: 'Incorrect email or password',
+  });
+}
     this.sendToken(user, 200, res);
   }
 
@@ -134,4 +144,27 @@ export class UserService {
     const result = await this.prisma.user.deleteMany();
     return { deleteCount: result.count };
   }
+
+  async updateManyUsers(ids: string[], data: any): Promise < {} > {
+  return  await this.prisma.user.updateMany({
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+    data,
+  })
+}
+
+async deleteManyUsers(ids: string[]): Promise<{ deleteCount: number }> {
+  const result = await this.prisma.user.deleteMany({
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+  });
+
+  return { deleteCount: result.count };
+}
 }

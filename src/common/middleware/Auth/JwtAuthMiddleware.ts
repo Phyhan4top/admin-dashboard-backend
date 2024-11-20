@@ -31,7 +31,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
       if (!user) {
         return next();
       }
-      console.log(user);
+   
       // Attach the user to the request object
       (req as unknown as ExtendedRequest).user = user;
 
