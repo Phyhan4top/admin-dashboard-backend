@@ -32,7 +32,9 @@ const proConfig = { port: '4000' };
     {
       provide: 'CONFIG',
       useFactory: () => {
-        return process.env.NODE_ENV === 'development' ? devConfig.port : proConfig.port;
+        return process.env.NODE_ENV === 'development'
+          ? devConfig.port
+          : proConfig.port;
       },
     },
     PrismaService,

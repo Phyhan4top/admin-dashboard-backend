@@ -62,7 +62,7 @@ export class UserService {
   ): Promise<void> {
     info.password = await this.hashPassword(info.password);
     info.email = info.email.toLowerCase();
-   this.prisma.user
+    this.prisma.user
       .create({
         data: info,
       })
@@ -85,12 +85,12 @@ export class UserService {
       where: { email: body.email.toLocaleLowerCase() },
     });
 
-   if (!user || !(await this.checkPassword(body.password, user.password))) {
-    return res.status(404).json({
-    status: 'error',
-    message: 'Incorrect email or password',
-  });
-}
+    if (!user || !(await this.checkPassword(body.password, user.password))) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Incorrect email or password',
+      });
+    }
     this.sendToken(user, 200, res);
   }
 
@@ -145,26 +145,26 @@ export class UserService {
     return { deleteCount: result.count };
   }
 
-  async updateManyUsers(ids: string[], data: any): Promise < {} > {
-  return  await this.prisma.user.updateMany({
-    where: {
-      id: {
-        in: ids,
+  async updateManyUsers(ids: string[], data: any): Promise<{}> {
+    return await this.prisma.user.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
       },
-    },
-    data,
-  })
-}
+      data,
+    });
+  }
 
-async deleteManyUsers(ids: string[]): Promise<{ deleteCount: number }> {
-  const result = await this.prisma.user.deleteMany({
-    where: {
-      id: {
-        in: ids,
+  async deleteManyUsers(ids: string[]): Promise<{ deleteCount: number }> {
+    const result = await this.prisma.user.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
       },
-    },
-  });
+    });
 
-  return { deleteCount: result.count };
-}
+    return { deleteCount: result.count };
+  }
 }

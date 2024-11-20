@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { User } from '@prisma/client'; // Import Prisma User model
+
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service'; // Import Prisma service
@@ -31,13 +31,13 @@ export class JwtAuthMiddleware implements NestMiddleware {
       if (!user) {
         return next();
       }
-   
+
       // Attach the user to the request object
       (req as unknown as ExtendedRequest).user = user;
 
       next();
     } catch (err) {
-      return next();
+      return next(err);
     }
   }
 }

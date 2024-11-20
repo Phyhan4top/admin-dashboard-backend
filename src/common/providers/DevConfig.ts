@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class DevConfig{
-  DBHOST = "localhost"
+export class DevConfig {
+  DBHOST = 'localhost';
   getDBHOST() {
-    return this.DBHOST
+    return this.DBHOST;
   }
 }

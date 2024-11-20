@@ -17,7 +17,7 @@ import { Roles } from 'src/common/decorators/roles.decorator'; // Import custom 
 import { RolesGuard } from 'src/common/guards/roles.guard'; // Import roles guard
 import { Role } from '@prisma/client'; // Assuming Role is defined in your schema
 import { CreateUserDto } from 'src/Dto/create.user.dto'; // Create user DTO for validation
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { ExtendedRequest } from 'src/common/interfaces/extended-request.interface';
 @Controller('api/users')
 export class UserController {
