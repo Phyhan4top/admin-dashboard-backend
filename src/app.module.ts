@@ -12,6 +12,8 @@ import { UserModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module'; // New PrismaModule
 import { PrismaService } from './prisma/prisma.service';
+import { UserService } from './users/users.service';
+import { JwtAuthMiddleware } from './common/middleware/Auth/JwtAuthMiddleware';
 
 const devConfig = { port: '3000' };
 const proConfig = { port: '4000' };
@@ -29,6 +31,9 @@ const proConfig = { port: '4000' };
   providers: [
     AppService,
     DevConfig,
+    UserService,
+    JwtAuthMiddleware,
+    PrismaService,
     {
       provide: 'CONFIG',
       useFactory: () => {

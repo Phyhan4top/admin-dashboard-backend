@@ -9,7 +9,9 @@ import { ExtendedRequest } from 'src/common/interfaces/extended-request.interfac
 
 @Injectable()
 export class JwtAuthMiddleware implements NestMiddleware {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+       console.log('PrismaService Injected:', prisma);
+  }
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
