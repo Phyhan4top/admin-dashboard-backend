@@ -2,7 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { PrismaService } from 'src/prisma/prisma.service'; // Import Prisma service
+import { PrismaService } from '../../../prisma/prisma.service'; // Import Prisma service
 
 // Extend the Request type to include 'user' from Prisma model
 import { ExtendedRequest } from 'src/common/interfaces/extended-request.interface'; // Import the custom request type
