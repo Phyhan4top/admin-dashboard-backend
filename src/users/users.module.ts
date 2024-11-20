@@ -7,7 +7,7 @@ import { JwtAuthMiddleware } from 'src/common/middleware/Auth/JwtAuthMiddleware'
 @Module({
   imports: [],
   controllers: [UserController],
-  providers: [UserService, PrismaService],
+  providers: [UserService, PrismaService,JwtAuthMiddleware],
 })
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
