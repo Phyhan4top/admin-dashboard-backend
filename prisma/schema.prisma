@@ -14,7 +14,7 @@ enum Role {
 
 enum Status {
   ACTIVE
-  BLOCKED
+  INACTIVE
 }
 
 model User {
